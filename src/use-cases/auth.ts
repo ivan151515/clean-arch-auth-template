@@ -60,7 +60,7 @@ export const login = async (
   if (!user.emailVerified) {
     throw new Error("Email not verified");
   }
-  const verified = cryptoService.verifyHash(user.password, password);
+  const verified = await cryptoService.verifyHash(user.password, password);
   if (!verified) {
     throw new Error("Incorrect credentials");
   }
