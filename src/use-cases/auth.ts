@@ -71,3 +71,23 @@ export const login = async (
   };
   return LoggedInUserDTO;
 };
+
+export const verifyEmail = async (
+  cryptoService: CryptoService,
+  userRepository: UserRepository,
+  emailService: EmailService,
+  code: string
+) => {};
+
+export const forgotPassword = async (
+  emailService: EmailService,
+  userRepository: UserRepository,
+  cryptoService: CryptoService,
+  email: string
+) => {};
+
+export const resetPassword = async (
+  userRepository: UserRepository,
+  emailService: EmailService,
+  cryptoService: CryptoService
+) => {};
