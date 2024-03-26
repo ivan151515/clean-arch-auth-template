@@ -15,4 +15,4 @@ class MockEmailService implements EmailService {
   }
 }
 
-export default new MockEmailService();
+export default MockEmailService;

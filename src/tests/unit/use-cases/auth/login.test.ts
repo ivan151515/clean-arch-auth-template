@@ -5,90 +5,63 @@ import { UserEntity } from "../../../../core/entities/user";
 import { login } from "../../../../use-cases/auth";
 import { MockCryptoService } from "../../../mocks/MockCryptoService";
 import { MockUserRepository } from "../../../mocks/MockUserRepo";
+import e from "express";
 beforeAll(() => {
-  //   jest.mock("../../../../core/entities/user", () => {
-  //     // Use a variable prefixed with mock for lazy loading
-  //     const mockUserEntity = jest.requireActual("../../../../core/entities/user");
-  //     return mockUserEntity;
-  //   });
   const findByEmailMock = jest
     .spyOn(MockUserRepository.prototype, "findByEmail")
     .mockImplementation(async (email: string, includePassword: boolean) => {
-      return new UserEntity(email, "sdasda", 5, "code", true);
+      return new UserEntity(email, "password", 5, "code", true);
     });
   const verifyHashMock = jest
     .spyOn(MockCryptoService.prototype, "verifyHash")
-    .mockImplementation(async (plainText: string, hashedPassword: string) => {
-      console.log(plainText, hashedPassword);
-      return plainText == hashedPassword;
-    });
-  //   jest.mock("../../../mocks/MockUserRepo", () => {
-  //     // Works and lets you check for constructor calls:
-
-  //     return {
-  //       MockUserRepository: jest.fn().mockImplementation(() => {
-  //         return {
-  //           MockUserRepository: (email: string, withPassword: boolean) =>
-  //             jest.fn().mockReturnValue(null),
-  //         };
-  //       }),
-  //     };
-  //   });
-  //   jest.mock("../../../mocks/MockCryptoService", () => {
-  //     // Works and lets you check for constructor calls:
-  //     return {
-  //       MockCryptoService: jest.fn().mockImplementation(() => {
-  //         return { verifiyHash: () => {} };
-  //       }),
-  //     };
-  //   });
+    .mockReturnValue(Promise.resolve(true));
 }); // MockCryptoService
 
-// const MockCryptoService: CryptoService = jest.mock(
-//   "../../../mocks/MockCryptoService",
-//   () => {
-//     return function () {
-//       return {
-//         verifyHash: (plaintext: string, hashed: string) => true,
-//       };
-//     };
-//   }
-// );
-// const mockRepo: UserRepository = jest.mock(
-//   "../../../core/abstracts/userRepo",
-//   () => {
-//     mockRepo.create = jest.fn();
-//     mockRepo.findByEmail = jest.fn();
-//     mockRepo.findById = jest.fn();
-//     mockRepo.updateOne = jest.fn();
-//   }
-// );
 describe("login use case", () => {
   test("user not found, throws error", async () => {
-    const res = await login(
-      {
-        email: "email",
-        password: "password",
-      },
+    jest
+      .spyOn(MockUserRepository.prototype, "findByEmail")
+      .mockReturnValueOnce(Promise.resolve(null));
+    const result = login(
+      { email: "email", password: "password" },
       new MockCryptoService(),
       new MockUserRepository()
     );
-    console.log(res);
-    // expect();
-    // expect(result).toThrow();
-    // (
-    //   UserRepository as jest.MockedClass<typeof UserRepository>
-    // ).mockImplementation(() => ({
-    //   findById: jest.fn().mockReturnValue(new UserEntity("")),
-    // }));
-    // const user = await login(
-    //   {
-    //     email: "test@test.com",
-    //     password: "password",
-    //   }
-    //   //   new MockCryptoService(),
-    //   //   new MockUserRepository()
-    // );
-    // console.log(user);
+    await expect(result).rejects.toThrow(/does not exist/i);
+  });
+  test("user found, returns dto with email, and userid", async () => {
+    const result = await login(
+      { email: "email@test.com", password: "password" },
+      new MockCryptoService(),
+      new MockUserRepository()
+    );
+    expect(result.email).toBe("email@test.com");
+    expect(result.id).toBe(5);
+  });
+  test("password not correct, throws", async () => {
+    jest
+      .spyOn(MockCryptoService.prototype, "verifyHash")
+      .mockReturnValueOnce(Promise.resolve(false));
+    const result = login(
+      { email: "email", password: "password" },
+      new MockCryptoService(),
+      new MockUserRepository()
+    );
+    await expect(result).rejects.toThrow(/incorrect credentials/i);
+  });
+  test("user with not verified email, throws", async () => {
+    jest
+      .spyOn(MockUserRepository.prototype, "findByEmail")
+      .mockReturnValueOnce(
+        Promise.resolve(
+          new UserEntity("email@test.com", "password", 5, "code", false)
+        )
+      );
+    const result = login(
+      { email: "email", password: "password" },
+      new MockCryptoService(),
+      new MockUserRepository()
+    );
+    await expect(result).rejects.toThrow(/not verified/);
   });
 });

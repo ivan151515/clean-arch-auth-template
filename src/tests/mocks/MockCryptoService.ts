@@ -1,7 +1,7 @@
 import { CryptoService } from "../../core/abstracts/cryptoService";
 
 export class MockCryptoService implements CryptoService {
-  hash(password: string): string {
+  async hash(password: string): Promise<string> {
     throw new Error("Method not implemented.");
   }
   verifyHash(plaintext: string, hash: string): Promise<boolean> {
