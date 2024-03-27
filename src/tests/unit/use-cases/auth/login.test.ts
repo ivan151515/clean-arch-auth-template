@@ -10,7 +10,7 @@ beforeAll(() => {
   const findByEmailMock = jest
     .spyOn(MockUserRepository.prototype, "findByEmail")
     .mockImplementation(async (email: string, includePassword: boolean) => {
-      return new UserEntity(email, "password", 5, "code", true);
+      return new UserEntity(email, "password", 5, "code", true, null, null);
     });
   const verifyHashMock = jest
     .spyOn(MockCryptoService.prototype, "verifyHash")
@@ -54,7 +54,15 @@ describe("login use case", () => {
       .spyOn(MockUserRepository.prototype, "findByEmail")
       .mockReturnValueOnce(
         Promise.resolve(
-          new UserEntity("email@test.com", "password", 5, "code", false)
+          new UserEntity(
+            "email@test.com",
+            "password",
+            5,
+            "code",
+            false,
+            null,
+            null
+          )
         )
       );
     const result = login(

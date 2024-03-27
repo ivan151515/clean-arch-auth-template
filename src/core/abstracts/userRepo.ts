@@ -1,14 +1,6 @@
 import { UserEntity } from "../entities/user";
 
-type updateUserQuery =
-  | {
-      id: number;
-      email: never;
-    }
-  | {
-      id: never;
-      email: string;
-    };
+type updateUserQuery = Partial<UserEntity>;
 
 export abstract class UserRepository {
   abstract findByEmail(

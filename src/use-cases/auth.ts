@@ -29,13 +29,15 @@ export const register = async (
   //TODO: CHEKC IF NEED AWAIT OR NOT
   const hashedPassword = await cryptoService.hash(password);
   const verificationCode = cryptoService.createCode();
-  const verificationCodeHash = await cryptoService.hash(verificationCode);
+  const verificationCodeHash = cryptoService.hashEmailCode(verificationCode);
 
   const user = await userRepo.create({
     email,
     emailVerificationCode: verificationCodeHash,
     emailVerified: false,
     password: hashedPassword,
+    passwordResetToken: null,
+    passwordResetTokenExpiresAt: null,
   });
   if (!user) {
     throw new Error("Somehting went wrong");
@@ -77,7 +79,21 @@ export const verifyEmail = async (
   userRepository: UserRepository,
   emailService: EmailService,
   code: string
-) => {};
+) => {
+  const hashedEmailCode = cryptoService.hashEmailCode(code);
+  const user = await userRepository.updateOne(
+    { emailVerificationCode: hashedEmailCode, emailVerified: false },
+    {
+      emailVerified: true,
+    }
+  );
+  if (!user) {
+    throw new Error("invalid verification code or already verified");
+  }
+  void emailService.sendConfirmEmailVerified(user.email);
+
+  return true;
+};
 
 export const forgotPassword = async (
   emailService: EmailService,

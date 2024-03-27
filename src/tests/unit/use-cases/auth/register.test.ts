@@ -17,6 +17,7 @@ let findByEmailMock: jest.SpyInstance<
   [email: string, includePassword: boolean],
   any
 >;
+let hashEmailSpy: jest.SpyInstance<string, [code: string], any>;
 beforeAll(() => {
   findByEmailMock = jest
     .spyOn(MockUserRepository.prototype, "findByEmail")
@@ -26,6 +27,9 @@ beforeAll(() => {
   hashSpy = jest
     .spyOn(MockCryptoService.prototype, "hash")
     .mockReturnValue(Promise.resolve("hashedpassword"));
+  hashEmailSpy = jest
+    .spyOn(MockCryptoService.prototype, "hashEmailCode")
+    .mockReturnValue("hashedcode");
   verificationEmailCodeCreateSpy = jest
     .spyOn(MockCryptoService.prototype, "createCode")
     .mockReturnValue("code");
@@ -36,7 +40,15 @@ beforeAll(() => {
     .spyOn(MockUserRepository.prototype, "create")
     .mockReturnValue(
       Promise.resolve(
-        new UserEntity("email@email.com", "hashedpassword", 2, "codee", false)
+        new UserEntity(
+          "email@email.com",
+          "hashedpassword",
+          2,
+          "codee",
+          false,
+          null,
+          null
+        )
       )
     );
 }); // MockCryptoService
@@ -52,7 +64,9 @@ describe("login use case", () => {
     jest
       .spyOn(MockUserRepository.prototype, "findByEmail")
       .mockReturnValueOnce(
-        Promise.resolve(new UserEntity("EMAIL", "PAS", 3, "copde", true))
+        Promise.resolve(
+          new UserEntity("EMAIL", "PAS", 3, "copde", true, null, null)
+        )
       );
     const result = register(
       { email: "email", password: "password" },
@@ -76,11 +90,14 @@ describe("login use case", () => {
     expect(repoCreateSpy).toHaveBeenCalledTimes(1);
     expect(repoCreateSpy).toHaveBeenCalledWith({
       email: "email@email.com",
-      emailVerificationCode: "hashedpassword",
+      emailVerificationCode: "hashedcode",
       emailVerified: false,
       password: "hashedpassword",
+      passwordResetToken: null,
+      passwordResetTokenExpiresAt: null,
     });
-    expect(hashSpy).toHaveBeenCalledTimes(2);
+    expect(hashSpy).toHaveBeenCalledTimes(1);
+    expect(hashEmailSpy).toHaveBeenCalledTimes(1);
     expect(hashSpy).toHaveBeenCalledWith("password");
     expect(verificationEmailCodeCreateSpy).toHaveBeenCalledTimes(1);
     expect(emailSpy).toHaveBeenCalledTimes(1);
