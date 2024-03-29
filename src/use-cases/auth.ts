@@ -133,9 +133,14 @@ export const resetPassword = async (
 ) => {
   const { email, token, password } = resetPasswordDto;
   const user = await userRepository.findByEmail(email, false);
-  if (!user || !user.passwordResetToken) throw new Error();
-  const valid = cryptoService.verifyHash(token, user.passwordResetToken);
-  console.log(valid);
+  if (
+    !user ||
+    !user.passwordResetToken ||
+    user.passwordResetTokenExpiresAt! < new Date()
+  )
+    throw new Error("user not found or invalid token");
+  const valid = await cryptoService.verifyHash(token, user.passwordResetToken);
+  if (!valid) throw new Error("invalid token");
   const hash = await cryptoService.hash(password);
 
   await userRepository.updateOne(

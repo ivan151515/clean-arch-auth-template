@@ -105,8 +105,87 @@ describe("forgot password", () => {
     );
     expect(emailSpy).toHaveBeenCalledTimes(1);
   });
-  test("user not found with email, throws", async () => {});
-  test("user found with email, token expired throws", async () => {});
-  test("user found with email, invalid token, throws", async () => {});
+  test("user not found with email, throws", async () => {
+    findByEmailSpy.mockReturnValueOnce(Promise.resolve(null));
+    const result = resetPassword(
+      new MockUserRepository(),
+      new MockEmailService(),
+      new MockCryptoService(),
+      {
+        email: "emeail@email.com",
+        password: "password",
+        token: "Otken",
+      }
+    );
+    await expect(result).rejects.toThrow(/user not found or invalid token/i);
+    expect(findByEmailSpy).toHaveBeenCalledTimes(1);
+    expect(emailSpy).not.toHaveBeenCalled();
+    expect(verifyHashSpy).not.toHaveBeenCalled();
+    expect(repoUpdateOneSpy).not.toHaveBeenCalled();
+  });
+  test("user found with email, token expired throws", async () => {
+    findByEmailSpy.mockReturnValueOnce(
+      Promise.resolve(
+        new UserEntity(
+          "email@emial.com",
+          "psa",
+          2,
+          null,
+          true,
+          "token",
+          new Date(Date.now() - 1000 * 36000)
+        )
+      )
+    );
+    const result = resetPassword(
+      new MockUserRepository(),
+      new MockEmailService(),
+      new MockCryptoService(),
+      {
+        email: "emasldča",
+        password: "Pasasdad",
+        token: "TOKEN",
+      }
+    );
+    await expect(result).rejects.toThrow(/user not found or invalid token/i);
+    expect(repoUpdateOneSpy).not.toHaveBeenCalled();
+    expect(emailSpy).not.toHaveBeenCalled();
+  });
+  test("user found with email, invalid token, throws", async () => {
+    verifyHashSpy.mockReturnValueOnce(Promise.resolve(false));
+    const result = resetPassword(
+      new MockUserRepository(),
+      new MockEmailService(),
+      new MockCryptoService(),
+      {
+        email: "emasldča",
+        password: "Pasasdad",
+        token: "TOKEN",
+      }
+    );
+    await expect(result).rejects.toThrow(/invalid token/);
+    expect(repoUpdateOneSpy).not.toHaveBeenCalled();
+    expect(emailSpy).not.toHaveBeenCalled();
+  });
+  test("user found, with no token, throws", async () => {
+    findByEmailSpy.mockReturnValueOnce(
+      Promise.resolve(
+        new UserEntity("email@emial.com", "psa", 2, null, true, null, null)
+      )
+    );
+    const result = resetPassword(
+      new MockUserRepository(),
+      new MockEmailService(),
+      new MockCryptoService(),
+      {
+        email: "emasldča",
+        password: "Pasasdad",
+        token: "TOKEN",
+      }
+    );
+    await expect(result).rejects.toThrow(/user not found or invalid token/);
+    expect(repoUpdateOneSpy).not.toHaveBeenCalled();
+    expect(emailSpy).not.toHaveBeenCalled();
+  });
   // test("update user repo sends back null, throws", async () => {});
 });
