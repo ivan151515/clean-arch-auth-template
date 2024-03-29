@@ -4,9 +4,9 @@ import { MockCryptoService } from "../../../mocks/MockCryptoService";
 import MockEmailService from "../../../mocks/MockEmailService";
 import { MockUserRepository } from "../../../mocks/MockUserRepo";
 
-let emailSpy: jest.SpyInstance<Promise<void>, [to: string], any>;
+let emailSpy: jest.SpyInstance<Promise<void>, [to: string], unknown>;
 
-let hashSpy: jest.SpyInstance<string, [code: string], any>;
+let hashSpy: jest.SpyInstance<string, [code: string], unknown>;
 let repoUpdateOneSpy: jest.SpyInstance<
   Promise<UserEntity | null>,
   [
@@ -21,7 +21,7 @@ let repoUpdateOneSpy: jest.SpyInstance<
         },
     updateFields: Partial<UserEntity>
   ],
-  any
+  unknown
 >;
 beforeAll(() => {
   repoUpdateOneSpy = jest

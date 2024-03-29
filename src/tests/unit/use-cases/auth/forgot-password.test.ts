@@ -1,12 +1,16 @@
 import { UserEntity } from "../../../../core/entities/user";
-import { forgotPassword, verifyEmail } from "../../../../use-cases/auth";
+import { forgotPassword } from "../../../../use-cases/auth";
 import { MockCryptoService } from "../../../mocks/MockCryptoService";
 import MockEmailService from "../../../mocks/MockEmailService";
 import { MockUserRepository } from "../../../mocks/MockUserRepo";
 
-let emailSpy: jest.SpyInstance<Promise<void>, [to: string, link: string], any>;
-let generateCodeSpy: jest.SpyInstance<string, [], any>;
-let hashSpy: jest.SpyInstance<Promise<string>, [password: string], any>;
+let emailSpy: jest.SpyInstance<
+  Promise<void>,
+  [to: string, link: string],
+  unknown
+>;
+let generateCodeSpy: jest.SpyInstance<string, [], unknown>;
+let hashSpy: jest.SpyInstance<Promise<string>, [password: string], unknown>;
 let repoUpdateOneSpy: jest.SpyInstance<
   Promise<UserEntity | null>,
   [
@@ -21,12 +25,12 @@ let repoUpdateOneSpy: jest.SpyInstance<
         },
     updateFields: Partial<UserEntity>
   ],
-  any
+  unknown
 >;
 let findByEmailSpy: jest.SpyInstance<
   Promise<UserEntity | null>,
   [email: string, includePassword: boolean],
-  any
+  unknown
 >;
 
 beforeAll(() => {
@@ -56,8 +60,10 @@ beforeAll(() => {
     .mockReturnValue(Promise.resolve());
   findByEmailSpy = jest
     .spyOn(MockUserRepository.prototype, "findByEmail")
-    .mockImplementation(async (email: string, includePassword: boolean) => {
-      return new UserEntity(email, "password", 5, "code", true, null, null);
+    .mockImplementation(async (email: string, _includePassword: boolean) => {
+      return await Promise.resolve(
+        new UserEntity(email, "password", 5, "code", true, null, null)
+      );
     });
 }); // MockCryptoService
 beforeEach(() => {

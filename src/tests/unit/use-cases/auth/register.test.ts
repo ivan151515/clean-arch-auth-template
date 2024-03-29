@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { UserEntity } from "../../../../core/entities/user";
-import { login, register } from "../../../../use-cases/auth";
+import { register } from "../../../../use-cases/auth";
 import { MockCryptoService } from "../../../mocks/MockCryptoService";
 import MockEmailService from "../../../mocks/MockEmailService";
 import { MockUserRepository } from "../../../mocks/MockUserRepo";
@@ -21,9 +22,8 @@ let hashEmailSpy: jest.SpyInstance<string, [code: string], any>;
 beforeAll(() => {
   findByEmailMock = jest
     .spyOn(MockUserRepository.prototype, "findByEmail")
-    .mockImplementation(async (email: string, includePassword: boolean) => {
-      return null;
-    });
+    .mockReturnValue(Promise.resolve(null));
+
   hashSpy = jest
     .spyOn(MockCryptoService.prototype, "hash")
     .mockReturnValue(Promise.resolve("hashedpassword"));
@@ -59,7 +59,7 @@ beforeEach(() => {
   verificationEmailCodeCreateSpy.mockClear();
   findByEmailMock.mockClear();
 });
-describe("login use case", () => {
+describe("register use case", () => {
   test("user already exist, throws error", async () => {
     jest
       .spyOn(MockUserRepository.prototype, "findByEmail")
@@ -102,40 +102,4 @@ describe("login use case", () => {
     expect(verificationEmailCodeCreateSpy).toHaveBeenCalledTimes(1);
     expect(emailSpy).toHaveBeenCalledTimes(1);
   });
-
-  //   test("user found, returns dto with email, and userid", async () => {
-  //     const result = await login(
-  //       { email: "email@test.com", password: "password" },
-  //       new MockCryptoService(),
-  //       new MockUserRepository()
-  //     );
-  //     expect(result.email).toBe("email@test.com");
-  //     expect(result.id).toBe(5);
-  //   });
-  //   test("password not correct, throws", async () => {
-  //     jest
-  //       .spyOn(MockCryptoService.prototype, "verifyHash")
-  //       .mockReturnValueOnce(Promise.resolve(false));
-  //     const result = login(
-  //       { email: "email", password: "password" },
-  //       new MockCryptoService(),
-  //       new MockUserRepository()
-  //     );
-  //     await expect(result).rejects.toThrow(/incorrect credentials/i);
-  //   });
-  //   test("user with not verified email, throws", async () => {
-  //     jest
-  //       .spyOn(MockUserRepository.prototype, "findByEmail")
-  //       .mockReturnValueOnce(
-  //         Promise.resolve(
-  //           new UserEntity("email@test.com", "password", 5, "code", false)
-  //         )
-  //       );
-  //     const result = login(
-  //       { email: "email", password: "password" },
-  //       new MockCryptoService(),
-  //       new MockUserRepository()
-  //     );
-  //     await expect(result).rejects.toThrow(/not verified/);
-  //   });
 });

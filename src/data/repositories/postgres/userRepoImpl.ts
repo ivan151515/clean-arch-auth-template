@@ -3,22 +3,28 @@ import { UserEntity } from "../../../core/entities/user";
 
 class UserRepoImpl extends UserRepository {
   async findByEmail(
-    email: string,
-    includePassword: boolean
+    _email: string,
+    _includePassword: boolean
   ): Promise<UserEntity | null> {
+    await Promise.resolve(null);
     return null;
   }
 
-  async findById(id: number): Promise<UserEntity | null> {
+  async findById(_id: number): Promise<UserEntity | null> {
+    await Promise.resolve(null);
     return null;
   }
   async updateOne(
-    query: { id: number; email: never } | { id: never; email: string },
-    updateFields: Partial<UserEntity>
+    _query: { id: number; email: never } | { id: never; email: string },
+    _updateFields: Partial<UserEntity>
   ): Promise<UserEntity | null> {
+    await Promise.resolve(null);
     return null;
   }
-  async create(data: Omit<UserEntity, "id">): Promise<UserEntity | null> {
+  async create(_data: Omit<UserEntity, "id">): Promise<UserEntity | null> {
+    await Promise.resolve(true);
     return null;
   }
 }
+
+export default new UserRepoImpl();

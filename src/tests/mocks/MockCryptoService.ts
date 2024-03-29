@@ -4,13 +4,14 @@ export class MockCryptoService implements CryptoService {
   generatePasswordResetToken(): string {
     throw new Error("Method not implemented.");
   }
-  hashEmailCode(code: string): string {
+  hashEmailCode(_code: string): string {
     throw new Error("Method not implemented.");
   }
-  async hash(password: string): Promise<string> {
+  async hash(_password: string): Promise<string> {
+    await Promise.resolve(true);
     throw new Error("Method not implemented.");
   }
-  verifyHash(plaintext: string, hash: string): Promise<boolean> {
+  verifyHash(_plaintext: string, _hash: string): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
   createCode(): string {

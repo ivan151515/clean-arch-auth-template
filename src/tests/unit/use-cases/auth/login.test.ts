@@ -1,22 +1,19 @@
-import { hash } from "argon2";
-import { CryptoService } from "../../../../core/abstracts/cryptoService";
-import { UserRepository } from "../../../../core/abstracts/userRepo";
 import { UserEntity } from "../../../../core/entities/user";
 import { login } from "../../../../use-cases/auth";
 import { MockCryptoService } from "../../../mocks/MockCryptoService";
 import { MockUserRepository } from "../../../mocks/MockUserRepo";
-import e from "express";
 beforeAll(() => {
-  const findByEmailMock = jest
+  jest
     .spyOn(MockUserRepository.prototype, "findByEmail")
-    .mockImplementation(async (email: string, includePassword: boolean) => {
-      return new UserEntity(email, "password", 5, "code", true, null, null);
+    .mockImplementation(async (email: string, _includePassword: boolean) => {
+      return await Promise.resolve(
+        new UserEntity(email, "password", 5, "code", true, null, null)
+      );
     });
-  const verifyHashMock = jest
+  jest
     .spyOn(MockCryptoService.prototype, "verifyHash")
     .mockReturnValue(Promise.resolve(true));
-}); // MockCryptoService
-
+});
 describe("login use case", () => {
   test("user not found, throws error", async () => {
     jest

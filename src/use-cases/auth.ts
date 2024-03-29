@@ -117,12 +117,35 @@ export const forgotPassword = async (
     //TODO: HANDLE PROPERLY LATER
     throw new Error();
   } else {
-    emailService.sendPasswordResetLink(email, resetToken);
+    void emailService.sendPasswordResetLink(email, resetToken);
   }
 };
-
+interface ResetPasswordDTO {
+  token: string;
+  email: string;
+  password: string;
+}
 export const resetPassword = async (
   userRepository: UserRepository,
   emailService: EmailService,
-  cryptoService: CryptoService
-) => {};
+  cryptoService: CryptoService,
+  resetPasswordDto: ResetPasswordDTO
+) => {
+  const { email, token, password } = resetPasswordDto;
+  const user = await userRepository.findByEmail(email, false);
+  if (!user || !user.passwordResetToken) throw new Error();
+  const valid = cryptoService.verifyHash(token, user.passwordResetToken);
+  console.log(valid);
+  const hash = await cryptoService.hash(password);
+
+  await userRepository.updateOne(
+    { email },
+    {
+      passwordResetTokenExpiresAt: null,
+      passwordResetToken: null,
+      password: hash,
+    }
+  );
+  void emailService.sendConfirmPasswordReset(email);
+  return true;
+};
