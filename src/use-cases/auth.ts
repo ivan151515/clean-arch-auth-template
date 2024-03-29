@@ -100,7 +100,26 @@ export const forgotPassword = async (
   userRepository: UserRepository,
   cryptoService: CryptoService,
   email: string
-) => {};
+) => {
+  let user = await userRepository.findByEmail(email, false);
+  if (!user) throw new Error();
+  const resetToken = cryptoService.generatePasswordResetToken();
+  const hashedToken = await cryptoService.hash(resetToken);
+
+  user = await userRepository.updateOne(
+    { email },
+    {
+      passwordResetToken: hashedToken,
+      passwordResetTokenExpiresAt: new Date(Date.now() + 1000 * 60 * 60),
+    }
+  );
+  if (!user) {
+    //TODO: HANDLE PROPERLY LATER
+    throw new Error();
+  } else {
+    emailService.sendPasswordResetLink(email, resetToken);
+  }
+};
 
 export const resetPassword = async (
   userRepository: UserRepository,
