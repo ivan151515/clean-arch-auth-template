@@ -154,3 +154,39 @@ export const resetPassword = async (
   void emailService.sendConfirmPasswordReset(email);
   return true;
 };
+
+export const resendEmailVerificationCode = async (
+  userRepository: UserRepository,
+  emailService: EmailService,
+  cryptoService: CryptoService,
+  email: string
+) => {
+  const user = await userRepository.findByEmail(email, false);
+  if (!user || user.emailVerified) {
+    throw new Error("Not found or already verified");
+  }
+  let code: string = "";
+  if (!user.emailVerificationCode) {
+    code = cryptoService.createCode();
+  }
+  let hashedCode = "";
+  if (code) {
+    hashedCode = cryptoService.hashEmailCode(code);
+  }
+  if (hashedCode.length) {
+    await userRepository.updateOne(
+      {
+        email,
+      },
+      {
+        emailVerificationCode: hashedCode,
+      }
+    );
+  }
+  //TODO: PUT ACTUAL LINK INSTEAD OF JUST CODE
+  void emailService.sendEmailVerficiation(
+    email,
+    user.emailVerificationCode || code
+  );
+  return true;
+};
